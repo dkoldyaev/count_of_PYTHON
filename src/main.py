@@ -1,9 +1,9 @@
-def get_files_paths(directory, filter_function=None):
+def get_files_paths(directory: str, filter_function: callable=None) -> list:
     '''
     Return all directories and files paths from current directory
-    :param directory: current_directory
-    :param filter_function: function to filter results
-    :return: list of files and directories from current directory
+    :param directory: current_directory.
+    :param filter_function: function to filter results. Example: os.path.isfile. Default None
+    :return: list of paths to filtered files and directories from current directory
     '''
     import os
     directory = os.path.abspath(directory)
@@ -13,7 +13,7 @@ def get_files_paths(directory, filter_function=None):
     while len(pathc) > 0:
         current_item = pathc.pop()
         current_path = os.path.join(directory, current_item)
-        if callable(filter_function) and filter_function(current_path) or not callable(filter_function):
+        if filter_function and filter_function(current_path) or not filter_function:
             result.append(current_path)
         if os.path.isdir(current_path):
             pathc += [os.path.join(current_path, sub_item) for sub_item in os.listdir(current_path)]
@@ -22,7 +22,7 @@ def get_files_paths(directory, filter_function=None):
     return result
 
 
-def python_count(directory):
+def python_count(directory: str) -> int:
     """Count how many files in the provided directory contain equal number of PYTHON occurrences as its corresponding
     number in the file name. Do not use bash/shell functions.
 
@@ -39,7 +39,12 @@ def python_count(directory):
     """
     import os
 
-    def try_file_contains(file_path):
+    def try_file_contains(file_path: str) -> bool:
+        '''
+        Checks if filename matches pattern PYTHON_<number>.txt and if count of occurrences is equal to number
+        :param file_path: path to try files
+        :return: boolean
+        '''
         import re
         result = re.match(r'.*PYTHON_0*(?P<file_number>\d+)\.txt$', file_path, re.UNICODE | re.IGNORECASE)
         if not result:
@@ -56,15 +61,14 @@ def python_count(directory):
     def try_path(filepath):
         return os.path.isfile(filepath) and try_file_contains(filepath)
 
-    good_files = get_files_paths(directory, try_path)
-    return len(good_files)
+    matching_files = get_files_paths(directory, try_path)
+    return len(matching_files)
 
 
 def main():
     directories = ['../resources/0', '../resources/1', '../resources/2', '../resources/3', '../resources/4']
 
     for directory in directories:
-        print('\n', directory)
         print(python_count(directory))
 
 
