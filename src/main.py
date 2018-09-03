@@ -46,10 +46,10 @@ def python_count(directory: str) -> int:
         :return: boolean
         '''
         import re
-        result = re.match(r'.*PYTHON_0*(?P<file_number>\d+)\.txt$', file_path, re.UNICODE | re.IGNORECASE)
+        result = re.match(r'.*PYTHON_(?P<file_number>\d+)\.txt$', file_path, re.UNICODE | re.IGNORECASE)
         if not result:
             return False
-        file_number = int(result.group('file_number'))
+        file_number = int(result.group('file_number'), base=10)
         try:
             with open(file_path, 'r') as current_file:
                 content = current_file.read()
