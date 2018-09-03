@@ -13,6 +13,8 @@ def get_files_paths(directory: str, filter_function: callable=None) -> list:
     while len(pathc) > 0:
         current_item = pathc.pop()
         current_path = os.path.join(directory, current_item)
+        if os.path.islink(current_path):
+            continue
         if filter_function and filter_function(current_path) or not filter_function:
             result.append(current_path)
         if os.path.isdir(current_path):
