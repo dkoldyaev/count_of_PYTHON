@@ -1,15 +1,25 @@
-def get_files_paths(directory):
+def get_files_paths(directory, filter_function=None):
+    '''
+    Return all directories and files paths from current directory
+    :param directory: current_directory
+    :param filter_function: function to filter results
+    :return: list of files and directories from current directory
+    '''
     import os
+    directory = os.path.abspath(directory)
     pathc = os.listdir(directory)
     result = []
-    while (len(pathc) > 0) :
-        current_path = os.path.join(directory, pathc.pop())
-        if os.path.isfile(current_path) :
+    counter = 0
+    while len(pathc) > 0:
+        current_item = pathc.pop()
+        current_path = os.path.join(directory, current_item)
+        if callable(filter_function) and filter_function(current_path) or not callable(filter_function):
             result.append(current_path)
-            print('is_file: %s\n' % current_path)
-        else :
-            pathc.append(current_path)
-            print('is_directory: %s\n' % current_path)
+        if os.path.isdir(current_path):
+            pathc += [os.path.join(current_path, sub_item) for sub_item in os.listdir(current_path)]
+        counter += 1
+
+    return result
 
 
 def python_count(directory):
@@ -27,15 +37,34 @@ def python_count(directory):
     Returns:
         int: number of files
     """
-    get_files_paths(directory)
-    return 1
+    import os
 
+    def try_file_contains(file_path):
+        import re
+        result = re.match(r'.*PYTHON_0*(?P<file_number>\d+)\.txt$', file_path, re.UNICODE | re.IGNORECASE)
+        if not result:
+            return False
+        file_number = int(result.group('file_number'))
+        try:
+            with open(file_path, 'r') as current_file:
+                content = current_file.read()
+            return content.count('PYTHON') == file_number
+        except FileExistsError:
+            return False
+
+
+    def try_path(filepath):
+        return os.path.isfile(filepath) and try_file_contains(filepath)
+
+    good_files = get_files_paths(directory, try_path)
+    return len(good_files)
 
 
 def main():
     directories = ['../resources/0', '../resources/1', '../resources/2', '../resources/3', '../resources/4']
 
     for directory in directories:
+        print('\n', directory)
         print(python_count(directory))
 
 
